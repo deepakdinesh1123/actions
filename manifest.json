@@ -26,6 +26,6 @@
   "urls": {
     "prod": "https://3f58-103-171-59-21.ngrok-free.app/customization/deployment",
     "staging": "https://staging-deployment.com",
-    "dev": "https://dev-deployment.com"
+    "dev": "https://dev_deployment.com"
   }
 }

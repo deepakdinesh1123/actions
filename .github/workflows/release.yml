@@ -28,6 +28,7 @@ jobs:
         env:
           ZELTHY_AUTH: ${{ secrets.ZELTHY_AUTH }}
           ZELTHY_GITHUB_AUTH: ${{ secrets.ZELTHY_GITHUB_AUTH }}
+          TEST_SECRET: ${{ secrets.TEST_SECRET }}
         run: |
           set -e  # Exit on error
 
@@ -56,6 +57,8 @@ jobs:
           echo "URL: $url"
           echo "Latest Version: $latest_version"
           echo "Remark: $remark"
+
+          echo "$url" "$BRANCH_NAME" "$remark" "$TEST_SECRET"
 
           chmod +x release.bash
           bash release.bash "$url" "$ZELTHY_AUTH" "$ZELTHY_GITHUB_AUTH" "$BRANCH_NAME" "$remark"
