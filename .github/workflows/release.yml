@@ -23,10 +23,20 @@ jobs:
       - name: Read URL from manifest
         id: read-url
         run: |
-          dev_url=$(jq -r '.urls.dev' manifest.json)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            url=$(jq -r '.urls.prod' manifest.json)
+          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
+            url=$(jq -r '.urls.dev' manifest.json)
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            url=$(jq -r '.urls.staging' manifest.json)
+          else
+            echo "Branch not recognized"
+            exit 1
+          fi
+
           latest_version=$(jq -r '.app_versions[-1].version' manifest.json)
           remark=$(jq -r '.app_versions[-1].remark' manifest.json)
 
-          echo "Dev URL: $dev_url"
+          echo "URL: $url"
           echo "Latest Version: $latest_version"
           echo "Remark: $remark"
