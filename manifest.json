@@ -32,7 +32,7 @@
   ],
   "urls": {
     "prod": "https://3f58-103-171-59-21.ngrok-free.app/customization/deployment",
-    "staging": "https://staging-deployment.com",
+    "staging": "https://staging_deployment.com",
     "dev": "https://e620-103-171-59-21.ngrok-free.app/customization/deployment"
   }
 }

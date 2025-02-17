@@ -28,7 +28,7 @@ jobs:
         id: Deploy_Application
         env:
           ZELTHY_AUTH: ${{ secrets.ZELTHY_AUTH }}
-          ZELTHY_GITHUB_USER: ${{ secrets.ZELTHY_GITHUB_USER }}
+          ZELTHY_GITHUB_USERNAME: ${{ secrets.ZELTHY_GITHUB_USERNAME }}
           ZELTHY_GITHUB_TOKEN: ${{ secrets.ZELTHY_GITHUB_TOKEN }}
         run: |
           set -e  # Exit on error
