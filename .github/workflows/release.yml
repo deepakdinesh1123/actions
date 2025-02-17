@@ -58,4 +58,4 @@ jobs:
           echo "Remark: $remark"
 
           chmod +x release.bash
-          bash release.bash $url $ZELTHY_AUTH $ZELTHY_GITHUB_AUTH $BRANCH_NAME $remark
+          bash release.bash "$url" "$ZELTHY_AUTH" "$ZELTHY_GITHUB_AUTH" "$BRANCH_NAME" "$remark"
