@@ -1,0 +1,32 @@
+name: Read URL from JSON
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "manifest.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "manifest.json"
+
+jobs:
+  read-url:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read URL from manifest
+        id: read-url
+        run: |
+          dev_url=$(jq -r '.urls.dev' manifest.json)
+          latest_version=$(jq -r '.app_versions[-1].version' manifest.json)
+          remark=$(jq -r '.app_versions[-1].remark' manifest.json)
+
+          echo "Dev URL: $dev_url"
+          echo "Latest Version: $latest_version"
+          echo "Remark: $remark"

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "app_versions": [
+    {
+        "config_script": "",
+        "tasks": "",
+        "fixture": "",
+        "remark": "testing deployment from actions",
+        "version": "2.60.6"
+    }
+  ],
+  "urls": {
+    "main": "https://main-deployment.com",
+    "staging": "https://staging-deployment.com",
+    "dev": "https://dev-deployment.com"
+  }
+}
