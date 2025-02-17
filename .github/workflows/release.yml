@@ -1,4 +1,4 @@
-name: Read URL from JSON
+name: Deploy Apps
 
 on:
   push:
@@ -13,30 +13,49 @@ on:
       - "manifest.json"
 
 jobs:
-  read-url:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Read URL from manifest
-        id: read-url
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Deploy App
+        id: Deploy_Application
+        env:
+          ZELTHY_AUTH: ${{ secrets.ZELTHY_AUTH }}
+          ZELTHY_GITHUB_AUTH: ${{ secrets.ZELTHY_GITHUB_AUTH }}
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            url=$(jq -r '.urls.prod' manifest.json)
-          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-            url=$(jq -r '.urls.dev' manifest.json)
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            url=$(jq -r '.urls.staging' manifest.json)
-          else
-            echo "Branch not recognized"
+          set -e  # Exit on error
+
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          case "$BRANCH_NAME" in
+            "main") url=$(jq -r '.urls.prod' manifest.json) ;;
+            "development") url=$(jq -r '.urls.dev' manifest.json) ;;
+            "staging") url=$(jq -r '.urls.staging' manifest.json) ;;
+            *) echo "Branch not recognized: $BRANCH_NAME"; exit 1 ;;
+          esac
+
+          if [[ -z "$url" || "$url" == "null" ]]; then
+            echo "Error: URL not found in manifest.json"
             exit 1
           fi
 
-          latest_version=$(jq -r '.app_versions[-1].version' manifest.json)
-          remark=$(jq -r '.app_versions[-1].remark' manifest.json)
+          latest_version=$(jq -r '.app_versions | select(length > 0) | .[-1].version // empty' manifest.json)
+          remark=$(jq -r '.app_versions | select(length > 0) | .[-1].remark // empty' manifest.json)
+
+          if [[ -z "$latest_version" || "$latest_version" == "null" ]]; then
+            echo "Error: latest_version not found in manifest.json"
+            exit 1
+          fi
 
           echo "URL: $url"
           echo "Latest Version: $latest_version"
           echo "Remark: $remark"
+
+          chmod +x release.bash
+          bash release.bash "$url" "$ZELTHY_AUTH" "$ZELTHY_GITHUB_AUTH" "$BRANCH_NAME" "$remark"

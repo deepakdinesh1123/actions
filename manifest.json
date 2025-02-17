@@ -6,18 +6,25 @@
         "tasks": "",
         "fixture": "",
         "remark": "testing deployment from actions",
-        "version": "2.60.6"
+        "version": "2.60.5"
     },
     {
         "config_script": "",
         "tasks": "",
         "fixture": "",
         "remark": "testing reading urls based on branch",
+        "version": "2.60.6"
+    },
+    {
+        "config_script": "",
+        "tasks": "",
+        "fixture": "",
+        "remark": "testing local release",
         "version": "2.60.7"
     }
   ],
   "urls": {
-    "prod": "https://main-deployment.com",
+    "prod": "https://3f58-103-171-59-21.ngrok-free.app/customization/deployment",
     "staging": "https://staging-deployment.com",
     "dev": "https://dev-deployment.com"
   }
