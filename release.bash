@@ -14,32 +14,31 @@ generate_jwt() {
     local secret="$3"
 
     # Validate inputs
-    [[ -z "$username" || -z "$password" ]] && error_exit "Username and password are required for JWT generation"
+    [[ -z "$username" || -z "$password" ]] && { echo "Error: Username, password, and secret are all required for JWT generation" >&2; return 1; }
 
+    # Create header and payload
     header='{"alg":"HS256","typ":"JWT"}'
-    payload="{\"username\":\"$username\",\"password\":\"$password\"}"
+    payload="{\"username\":\"$username\",\"password\":\"$password\",\"iat\":$(date +%s)}"
 
-    # Base64url encode header and payload
-    header_base64=$(echo -n "$header" | openssl base64 -A | tr -d '=' | tr '/+' '_-')
-    payload_base64=$(echo -n "$payload" | openssl base64 -A | tr -d '=' | tr '/+' '_-')
+    # Base64url encode header and payload properly
+    header_base64=$(echo -n "$header" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+    payload_base64=$(echo -n "$payload" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
 
-    # Generate signature
-    if [[ -z "$secret" ]]; then
-        # Handle empty secret case properly
-        signature=""
-    else
-        signature=$(echo -n "${header_base64}.${payload_base64}" |
-                  openssl dgst -sha256 -hmac "$secret" -binary |
-                  openssl base64 -A | tr -d '=' | tr '/+' '_-')
-    fi
+    # Generate signature using the provided secret
+    data="${header_base64}.${payload_base64}"
+    signature=$(echo -n "$data" |
+               openssl dgst -sha256 -hmac "$secret" -binary |
+               openssl base64 -e -A |
+               tr '+/' '-_' |
+               tr -d '=')
 
-    # Concatenate to form the JWT
+    # Concatenate to form the complete JWT
     jwt_token="${header_base64}.${payload_base64}.${signature}"
     echo "$jwt_token"
 }
 
 # Function to get deployment status
-get_deployment_status() {
+get_task_status() {
     local base_url="$1"
     local auth_header="$2"
     local cookie_header="$3"
@@ -47,17 +46,17 @@ get_deployment_status() {
     local timeout=600  # 10 minutes timeout
     local start_time=$(date +%s)
 
-    echo "Checking deployment status..."
+    echo "Checking task status..."
 
     while true; do
         current_time=$(date +%s)
         elapsed=$((current_time - start_time))
 
         if [[ $elapsed -gt $timeout ]]; then
-            error_exit "Deployment timed out after $(($timeout / 60)) minutes"
+            error_exit "Task timed out after $(($timeout / 60)) minutes"
         fi
 
-        response=$(curl --silent --location "$base_url/getDeploymentStatus/?task_id=$task_id" \
+        response=$(curl --silent --location "$base_url/getTaskStatus/?task_id=$task_id" \
             --header "$auth_header" \
             --header "$cookie_header" || echo '{"response":[{"status":"error","msg":"Connection failed"}]}')
 
@@ -73,17 +72,17 @@ get_deployment_status() {
 
         case "$status" in
             success)
-                echo "Deployment completed successfully: $message"
+                echo "Task completed successfully: $message"
                 return 0
                 ;;
             failure)
-                error_exit "Deployment failed: $message"
+                error_exit "Task failed: $message"
                 ;;
             error)
                 echo "Received error: $message. Retrying..."
                 ;;
             *)
-                echo "Deployment in progress... (Status: ${status:-unknown})"
+                echo "Task in progress... (Status: ${status:-unknown})"
                 ;;
         esac
 
@@ -129,7 +128,39 @@ deploy() {
     fi
 
     echo "Deployment started. Task ID: $task_id"
-    get_deployment_status "$base_url" "$auth_header" "$cookie_header" "$task_id"
+    get_task_status "$base_url" "$auth_header" "$cookie_header" "$task_id"
+}
+
+# Function to switch branch
+switch_branch() {
+    local previous_branch="$1"
+    local new_branch="$2"
+    local base_url="$3"
+    local auth_header="$4"
+    local cookie_header="$5"
+
+    echo "Switching from branch $previous_branch to $new_branch"
+
+    response=$(curl --silent --location "$base_url/switchBranch/" \
+        --header "$auth_header" \
+        --header "$cookie_header" \
+        --header 'Content-Type: application/json' \
+        --data "{\"previous_branch\": \"$previous_branch\", \"new_branch\": \"$new_branch\"}")
+
+    if [[ -z "$response" ]]; then
+        error_exit "Empty response received from switch branch endpoint"
+    fi
+
+    # Extract task_id
+    task_id=$(echo "$response" | jq -r '.response.task_id' 2>/dev/null)
+    if [[ $? -ne 0 || -z "$task_id" || "$task_id" == "null" ]]; then
+        error_exit "Failed to retrieve task ID for branch switch. Response: $response"
+    fi
+
+    echo "Branch switch initiated. Task ID: $task_id"
+
+    # Wait for the branch switch to complete before proceeding
+    get_task_status "$base_url" "$auth_header" "$cookie_header" "$task_id"
 }
 
 # Main script
@@ -166,6 +197,9 @@ main() {
     local github_jwt=$(generate_jwt "$github_username" "$github_token" "")
     local auth_header="Authorization: Bearer $zelthy_token"
     local cookie_header="Cookie: github_auth=$github_jwt; owner=$github_owner; repo_name=$github_repo"
+
+    # Switch branch
+    switch_branch "$branch" "$branch" "$base_url" "$auth_header" "$cookie_header"
 
     # Start deployment
     deploy "$base_url" "$auth_header" "$cookie_header" "$branch" "$release_notes"

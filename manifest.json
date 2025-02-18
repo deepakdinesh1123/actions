@@ -28,11 +28,18 @@
         "fixture": "",
         "remark": "testing local release",
         "version": "2.60.8"
+    },
+    {
+        "config_script": "",
+        "tasks": "",
+        "fixture": "",
+        "remark": "testing release final",
+        "version": "2.70.1"
     }
   ],
   "urls": {
     "prod": "https://3f58-103-171-59-21.ngrok-free.app/customization/deployment",
     "staging": "https://staging_deployment.com",
-    "dev": "https://e620-103-171-59-21.ngrok-free.app/customization/deployment"
+    "dev": "https://0091-103-171-59-21.ngrok-free.app/customization/deployment"
   }
 }
