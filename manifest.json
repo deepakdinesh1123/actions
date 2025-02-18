@@ -34,12 +34,12 @@
         "tasks": "",
         "fixture": "",
         "remark": "testing release final",
-        "version": "2.70.1"
+        "version": "2.70.2"
     }
   ],
   "urls": {
     "prod": "https://3f58-103-171-59-21.ngrok-free.app/customization/deployment",
     "staging": "https://staging_deployment.com",
-    "dev": "https://0091-103-171-59-21.ngrok-free.app/customization/deployment"
+    "dev": "https://398a-103-171-59-21.ngrok-free.app/customization/deployment"
   }
 }
