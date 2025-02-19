@@ -1,17 +1,7 @@
 name: Deploy Apps
 
 on:
-  push:
-    branches:
-      - main
-      - test_deepak
-    paths:
-      - "manifest.json"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "manifest.json"
+  workflow_call:
 
 jobs:
   deploy:
@@ -39,7 +29,6 @@ jobs:
 
           case "$BRANCH_NAME" in
             "main") url=$(jq -r '.urls.prod' manifest.json) ;;
-            "test_deepak") url=$(jq -r '.urls.dev' manifest.json) ;;
             "staging") url=$(jq -r '.urls.staging' manifest.json) ;;
             *) echo "Branch not recognized: $BRANCH_NAME"; exit 1 ;;
           esac
