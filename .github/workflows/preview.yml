@@ -1,0 +1,31 @@
+name: PReview
+
+on:
+  pull_request:
+    types: [labeled, opened, reopened, synchronize, ready_for_review, unlabeled, closed]
+
+jobs:
+  preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    
+    # These permissions are required for OIDC and PR comments
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+          
+      - name: PReview
+        uses: deepakdinesh1123/PReview@main
+        with:
+          buildRoleARN: ${{ vars.BUILD_ROLE_ARN }}
+          s3Path: ${{ vars.S3_PATH }}
+          # appPath: "." (default is root directory where Dockerfile lives)

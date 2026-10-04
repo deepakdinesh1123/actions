@@ -1,0 +1,9 @@
+{
+  "name": "actions-test-app",
+  "version": "1.0.0",
+  "description": "Simple test app for PReview",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
